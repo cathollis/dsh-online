@@ -70,7 +70,6 @@ RUN chmod 0755 /usr/local/bin/dsh-entrypoint \
 ENV DSH_HOME=/data/dsh \
     DSH_PERMISSION_MODE=danger-full-access \
     DSH_PORT=3080 \
-    TZ=Asia/Shanghai \
     LANG=C.UTF-8
 
 WORKDIR /workspace
