@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dsh
+  namespace: dsh
+  annotations:
+    # Add the forwardAuth middleware once oauth2-proxy is in place; the reference
+    # names the Middleware in middleware-forwardauth.yaml and its namespace.
+    # traefik.ingress.kubernetes.io/router.middlewares: dsh-dsh-forwardauth@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: dsh.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dsh
+                port:
+                  number: 3080

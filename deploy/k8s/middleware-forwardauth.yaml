@@ -1,0 +1,16 @@
+# Pending CS-26. Not part of kustomization.yaml until oauth2-proxy exists.
+#
+# Applying this alone leaves no auth server behind the address and every routed
+# request fails. Two more pieces belong with it: the oauth2-proxy Deployment and
+# Service, and a rule that sends /oauth2/* to oauth2-proxy without this
+# middleware, or the callback redirects into itself.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: dsh-forwardauth
+  namespace: dsh
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy.dsh.svc.cluster.local:4180/oauth2/auth
+    authResponseHeaders:
+      - X-Auth-Request-User

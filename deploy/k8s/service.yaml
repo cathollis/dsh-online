@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dsh
+  namespace: dsh
+spec:
+  type: ClusterIP
+  selector:
+    app: dsh
+  ports:
+    - name: http
+      port: 3080
+      targetPort: http

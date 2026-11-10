@@ -1,0 +1,7 @@
+# Keep build context small; everything here is either regenerated or not needed.
+node_modules
+**/node_modules
+dist
+**/dist
+.pnpm-store
+*.log

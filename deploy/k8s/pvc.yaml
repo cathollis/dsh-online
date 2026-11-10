@@ -1,0 +1,26 @@
+# Home: sessions, credentials, settings, and the browser cookie signing key.
+# Workspace: the directory the agent edits. They are separate claims because the
+# home is state worth backing up on its own schedule and the workspace is code.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-home
+  namespace: dsh
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-workspace
+  namespace: dsh
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi

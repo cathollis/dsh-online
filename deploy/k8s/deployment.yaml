@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsh
+  namespace: dsh
+spec:
+  # One Host owns one home. Recreate keeps a second process from writing the same
+  # session store during an update.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dsh
+  template:
+    metadata:
+      labels:
+        app: dsh
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: dsh
+          image: dsh-online:0.2.2-rc.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: DSH_PERMISSION_MODE
+              value: danger-full-access
+            # Enable once the entry proxy injects the header; see the ingress file.
+            # - name: DSH_PROXY_AUTH_HEADER
+            #   value: x-auth-request-user
+            - name: DSH_PUBLIC_URL
+              value: https://dsh.example.com/
+            - name: DSH_TRUSTED_HOST
+              value: dsh.example.com
+          ports:
+            - name: http
+              containerPort: 3080
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              memory: 6Gi
+          volumeMounts:
+            - name: home
+              mountPath: /data/dsh
+            - name: workspace
+              mountPath: /workspace
+      volumes:
+        - name: home
+          persistentVolumeClaim:
+            claimName: dsh-home
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: dsh-workspace

@@ -20,6 +20,11 @@ const COOKIE_PAYLOAD_VERSION = 1
 const STORED_SECRET_VERSION = 1
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]*$/
 const PROCESS_LAUNCH_TOKENS = new WeakMap<object, string>()
+/**
+ * Deployment-selected request header an authenticated entry proxy writes. Unset keeps the
+ * cookie-only behaviour; set admits any request carrying the header as the owner Peer.
+ */
+const PROXY_AUTH_HEADER = process.env.DSH_PROXY_AUTH_HEADER?.toLowerCase()
 
 interface StoredSecretPayload {
   readonly version: typeof STORED_SECRET_VERSION
@@ -351,9 +356,14 @@ export class BrowserAuth {
    * Verify the authority-bound browser cookie on a Host request.
    * @param request - request headers carrying Host and Cookie.
    * @param secure - whether the receiving listener uses TLS, including its default port.
-   * @returns true only for an unexpired cookie signed by this activation's loaded secret.
+   * @returns true for a non-empty configured proxy-authentication header value, or for an
+   * unexpired cookie signed by this activation's loaded secret.
    */
   isAuthenticated(request: ConnectionTrustRequest, secure = false): boolean {
+    if (PROXY_AUTH_HEADER !== undefined) {
+      const proxyUser = header(request.headers, PROXY_AUTH_HEADER)
+      if (proxyUser !== undefined && proxyUser !== '') return true
+    }
     return this.authenticate(request, secure)?.version === COOKIE_PAYLOAD_VERSION
   }
 
