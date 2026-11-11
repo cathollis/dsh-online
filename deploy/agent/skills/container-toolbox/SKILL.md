@@ -12,7 +12,7 @@ install goes to `/data/tools`, which is already on `PATH`.
 
 ```sh
 command -v fd || command -v fdfind
-command -v magick || command -v convert
+command -v convert
 command -v rg
 ```
 

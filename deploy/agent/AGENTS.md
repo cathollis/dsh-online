@@ -19,7 +19,7 @@ not a laptop: some paths persist and some disappear when the Pod restarts.
 `bash`, `git`, `curl`, `jq`, `unzip`, `zip`, `less`, `tree`, `procps`,
 `ripgrep` (`rg`), `fd` (`fdfind`, with `/usr/bin/fd` linked), `bat`, `file`,
 `sqlite3`, `zstd`, `xz`, `openssh-client`, `python3` with `venv` and `pipx`,
-`ffmpeg`, `convert`/`magick` from ImageMagick, `rsvg-convert`, `pdftoppm` and
+`ffmpeg`, `convert` and `identify` from ImageMagick 6, `rsvg-convert`, `pdftoppm` and
 `pdfinfo` from poppler, `gs`, `cwebp` and `dwebp`, `exiftool`, and the
 `Noto CJK` and `DejaVu` font families.
 
