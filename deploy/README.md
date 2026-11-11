@@ -117,9 +117,12 @@ these three prefixes works until the Pod restarts and then disappears.
 | `k8s/kustomization.yaml` | the five objects above, without the middleware |
 
 Placeholders to fill before applying: the image reference, both host names, and
-`storageClassName` on the claims. `fsGroup: 1000` assumes the storage plugin
-supports ownership changes; where it does not, the home volume is not writable
-by the container user and needs an init container or root.
+`storageClassName` on the claims.
+
+The Pod sets `runAsUser` and `runAsGroup` but no `fsGroup`. With `fsGroup`, the
+kubelet re-applies group read/write to the volume on every mount, which turns the
+`600` credentials file into `660` and DSH refuses to start. The volumes are owned
+by uid 1000, so no ownership adjustment is needed.
 
 Updates use `Recreate` because one home directory is written by one process.
 

@@ -81,7 +81,9 @@ docker build -f deploy/Dockerfile -t <registry>/dsh-online:0.2.2-rc.1.1 .
 | `k8s/middleware-forwardauth.yaml` | forwardAuth 中间件，等 oauth2-proxy 就绪后再应用 |
 | `k8s/kustomization.yaml` | 上面五个对象，不含中间件 |
 
-应用之前要填的占位：镜像地址、两处主机名、三个 PVC 的 `storageClassName`。`fsGroup: 1000` 假设存储插件支持变更属主；不支持的存储上 home 卷对容器用户不可写，需要 init 容器或直接以 root 运行。
+应用之前要填的占位：镜像地址、两处主机名、三个 PVC 的 `storageClassName`。
+
+Pod 设了 `runAsUser` 与 `runAsGroup`，但没有 `fsGroup`。带上 `fsGroup` 时，kubelet 每次挂载都会给卷内容重新加组读写权限，把 `600` 的凭据文件改成 `660`，DSH 因此拒绝启动。卷的属主本来就是 1000，不需要再调整归属。
 
 更新策略用 `Recreate`，因为同一个 home 目录只能由一个进程写入。
 

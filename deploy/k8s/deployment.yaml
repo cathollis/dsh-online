@@ -18,10 +18,12 @@ spec:
         app: dsh
     spec:
       automountServiceAccountToken: false
+      # No fsGroup: kubelet re-applies group read/write to volume contents on every
+      # mount, which turns the 600 credentials file into 660 and refuses startup.
+      # The volume belongs to uid 1000 already, so ownership needs no adjustment.
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
-        fsGroup: 1000
       containers:
         - name: dsh
           image: registry.example.com/dsh-online:0.2.2-rc.1.1
