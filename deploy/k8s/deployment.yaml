@@ -66,6 +66,8 @@ spec:
               mountPath: /data/dsh
             - name: workspace
               mountPath: /workspace
+            - name: tools
+              mountPath: /data/tools
       volumes:
         - name: home
           persistentVolumeClaim:
@@ -73,3 +75,6 @@ spec:
         - name: workspace
           persistentVolumeClaim:
             claimName: dsh-workspace
+        - name: tools
+          persistentVolumeClaim:
+            claimName: dsh-tools

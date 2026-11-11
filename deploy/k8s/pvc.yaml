@@ -1,6 +1,7 @@
 # Home: sessions, credentials, settings, and the browser cookie signing key.
-# Workspace: the directory the agent edits. They are separate claims because the
-# home is state worth backing up on its own schedule and the workspace is code.
+# Workspace: the directory the agent edits. Tools: user-space installs the agent
+# makes for itself. They are separate claims because each is wiped on its own
+# schedule and only the home is state worth backing up.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -24,3 +25,15 @@ spec:
   resources:
     requests:
       storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dsh-tools
+  namespace: dsh
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi

@@ -52,22 +52,57 @@ RUN cd /opt/dsh \
 
 FROM node:24-bookworm-slim AS runtime
 
+# The agent has no root, so anything system-wide has to be here. Media tooling
+# and the notation fonts come from Debian; the rest is what a working shell
+# normally expects to find.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       bash \
       git \
       ca-certificates \
       tini \
- && rm -rf /var/lib/apt/lists/*
+      curl \
+      jq \
+      file \
+      unzip \
+      zip \
+      less \
+      tree \
+      procps \
+      ripgrep \
+      fd-find \
+      bat \
+      sqlite3 \
+      zstd \
+      xz-utils \
+      openssh-client \
+      python3 \
+      python3-venv \
+      pipx \
+      ffmpeg \
+      imagemagick \
+      libheif1 \
+      librsvg2-bin \
+      poppler-utils \
+      ghostscript \
+      webp \
+      libimage-exiftool-perl \
+      fonts-noto-cjk \
+      fonts-dejavu-core \
+ && rm -rf /var/lib/apt/lists/* \
+ && ln -sf /usr/bin/fdfind /usr/bin/fd \
+ && ln -sf /usr/bin/batcat /usr/bin/bat
 
 COPY --from=builder /opt/dsh /opt/dsh
 COPY deploy/entrypoint.sh /usr/local/bin/dsh-entrypoint
+COPY deploy/agent /opt/dsh-env
 
 RUN chmod 0755 /usr/local/bin/dsh-entrypoint \
- && mkdir -p /data/dsh /workspace \
- && chown -R 1000:1000 /data/dsh /workspace
+ && mkdir -p /data/dsh /data/tools/bin /data/tools/npm/bin /data/tools/py/bin /workspace \
+ && chown -R 1000:1000 /data/dsh /data/tools /workspace
 
-ENV DSH_HOME=/data/dsh \
+ENV PATH=/data/tools/bin:/data/tools/npm/bin:/data/tools/py/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    DSH_HOME=/data/dsh \
     DSH_PERMISSION_MODE=danger-full-access \
     DSH_PORT=3080 \
     LANG=C.UTF-8
