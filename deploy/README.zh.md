@@ -25,10 +25,14 @@
 在仓库根目录构建，`COPY . .` 才能看到完整检出，其中也包括构建过程要读的 `.git`，`build:official` 用它取内嵌的提交哈希。
 
 ```sh
-docker build -f deploy/Dockerfile -t <registry>/dsh-online:0.2.2-rc.1-proxy-auth .
+docker build -f deploy/Dockerfile -t <registry>/dsh-online:0.2.2-rc.1.1 .
 ```
 
 镜像约 3.9 GB，绝大部分是全部已发布包的消费者安装，其中约一吉字节是媒体工具与中文字体。
+
+### 镜像标签
+
+标签形式是 `<上游版本>.<fork 修订号>`。`0.2.2-rc.1.1` 表示在上游 `0.2.2-rc.1` 之上的第一个补丁构建；补丁或镜像有变动但上游没动时递增到 `.2`；上游发布新版本后从 `.1` 重新开始。镜像内部报告的版本仍是上游包版本，fork 修订只体现在标签上。
 
 ## 运行
 

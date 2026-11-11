@@ -24,7 +24,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: dsh
-          image: registry.example.com/dsh-online:0.2.2-rc.1-proxy-auth
+          image: registry.example.com/dsh-online:0.2.2-rc.1.1
           imagePullPolicy: IfNotPresent
           env:
             - name: POD_IP

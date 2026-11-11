@@ -43,11 +43,19 @@ Build from the repository root so `COPY . .` sees the whole checkout, including
 `.git`, which `build:official` reads for the embedded commit hash.
 
 ```sh
-docker build -f deploy/Dockerfile -t <registry>/dsh-online:0.2.2-rc.1-proxy-auth .
+docker build -f deploy/Dockerfile -t <registry>/dsh-online:0.2.2-rc.1.1 .
 ```
 
 The image is roughly 3.9 GB; most of it is the consumer install of every
 released package, and about a gigabyte is the media tooling and CJK fonts.
+
+### Image tags
+
+Tags read `<upstream version>.<fork revision>`. `0.2.2-rc.1.1` is the first
+build of this patch on top of upstream `0.2.2-rc.1`; `.2` follows when the
+patch or the image changes without moving the base; a new upstream release
+restarts the counter at `.1`. The version reported inside the image stays the
+upstream package version, so the fork revision lives only in the tag.
 
 ## Runtime
 
