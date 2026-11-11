@@ -46,8 +46,8 @@ Build from the repository root so `COPY . .` sees the whole checkout, including
 docker build -f deploy/Dockerfile -t <registry>/dsh-online:0.2.2-rc.1-proxy-auth .
 ```
 
-The image is roughly 2.8 GB; most of it is the consumer install of every
-released package.
+The image is roughly 3.9 GB; most of it is the consumer install of every
+released package, and about a gigabyte is the media tooling and CJK fonts.
 
 ## Runtime
 
@@ -66,12 +66,42 @@ released package.
 The image exposes one authority through `DSH_TRUSTED_HOST`. A deployment that
 needs several can extend the entrypoint.
 
+## Tools and user-space installs
+
+The runtime layer carries what a shell normally expects: `bash`, `git`,
+`curl`, `jq`, `file`, `unzip`, `zip`, `less`, `tree`, `procps`, `ripgrep`,
+`fd`, `bat`, `sqlite3`, `zstd`, `xz`, `openssh-client`, and `python3` with
+`venv` and `pipx`. Media work is covered by `ffmpeg`, ImageMagick,
+`librsvg2-bin`, `poppler-utils`, `ghostscript`, `webp`, and `exiftool`, with
+the Noto CJK and DejaVu font families installed for text rendering.
+
+Nothing runs as root, so the agent cannot use `apt`. Instead the image puts
+three prefixes on `PATH` and mounts a volume behind them:
+
+| Path | Purpose |
+|---|---|
+| `/data/tools/bin` | single static binaries |
+| `/data/tools/npm/bin` | `npm install -g --prefix /data/tools/npm` |
+| `/data/tools/py/bin` | virtual environments and `pipx --home /data/tools/pipx` |
+
+`deploy/agent/` ships the instructions the agent needs to use this correctly.
+On first start the entrypoint copies them into the home volume:
+
+- `AGENTS.md` becomes `$DSH_HOME/AGENTS.md`, the global instruction file.
+- `skills/container-toolbox/` becomes `$DSH_HOME/skills/container-toolbox/`,
+  a skill that carries the install recipes and the escalation message for a
+  system package.
+
+An edited copy already in the volume is never overwritten, so the user can
+change either file without rebuilding the image. Installing into a path outside
+these three prefixes works until the Pod restarts and then disappears.
+
 ## Manifests
 
 | File | Content |
 |---|---|
 | `k8s/namespace.yaml` | the `dsh` namespace |
-| `k8s/pvc.yaml` | `dsh-home` at `/data/dsh` and `dsh-workspace` at `/workspace` |
+| `k8s/pvc.yaml` | `dsh-home` at `/data/dsh`, `dsh-workspace` at `/workspace`, `dsh-tools` at `/data/tools` |
 | `k8s/deployment.yaml` | one replica, `Recreate` updates, TCP readiness and liveness |
 | `k8s/service.yaml` | ClusterIP on 3080 |
 | `k8s/ingress.yaml` | Traefik ingress for the host |

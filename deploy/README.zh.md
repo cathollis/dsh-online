@@ -28,7 +28,7 @@
 docker build -f deploy/Dockerfile -t <registry>/dsh-online:0.2.2-rc.1-proxy-auth .
 ```
 
-镜像约 2.8 GB，绝大部分是全部已发布包的消费者安装。
+镜像约 3.9 GB，绝大部分是全部已发布包的消费者安装，其中约一吉字节是媒体工具与中文字体。
 
 ## 运行
 
@@ -46,19 +46,38 @@ docker build -f deploy/Dockerfile -t <registry>/dsh-online:0.2.2-rc.1-proxy-auth
 
 镜像只通过 `DSH_TRUSTED_HOST` 接受一个 authority。需要多个时扩展入口脚本。
 
+## 工具与用户态安装
+
+运行层带了日常命令行工具：`bash`、`git`、`curl`、`jq`、`file`、`unzip`、`zip`、`less`、`tree`、`procps`、`ripgrep`、`fd`、`bat`、`sqlite3`、`zstd`、`xz`、`openssh-client`，以及带 `venv` 和 `pipx` 的 `python3`。媒体处理由 `ffmpeg`、ImageMagick、`librsvg2-bin`、`poppler-utils`、`ghostscript`、`webp`、`exiftool` 覆盖，另装了 Noto CJK 与 DejaVu 字体用于文字渲染。
+
+进程不以 root 运行，agent 用不了 `apt`。镜像改为在 `PATH` 上放三个前缀，并给它们挂一个卷：
+
+| 路径 | 用途 |
+|---|---|
+| `/data/tools/bin` | 单文件静态二进制 |
+| `/data/tools/npm/bin` | `npm install -g --prefix /data/tools/npm` |
+| `/data/tools/py/bin` | 虚拟环境与 `pipx --home /data/tools/pipx` |
+
+`deploy/agent/` 存放让 agent 正确使用这套约定的说明。首次启动时入口脚本把它们拷进 home 卷：
+
+- `AGENTS.md` 变成 `$DSH_HOME/AGENTS.md`，即全局指令文件。
+- `skills/container-toolbox/` 变成 `$DSH_HOME/skills/container-toolbox/`，技能里写着各类安装方法和需要系统包时要发的那条请求。
+
+卷里已经存在的版本不会被覆盖，所以你可以直接改这两个文件，不用重建镜像。装到这三个前缀之外的路径在 Pod 重启后会消失。
+
 ## 清单
 
 | 文件 | 内容 |
 |---|---|
 | `k8s/namespace.yaml` | `dsh` 命名空间 |
-| `k8s/pvc.yaml` | `dsh-home` 挂到 `/data/dsh`，`dsh-workspace` 挂到 `/workspace` |
+| `k8s/pvc.yaml` | `dsh-home` 挂到 `/data/dsh`，`dsh-workspace` 挂到 `/workspace`，`dsh-tools` 挂到 `/data/tools` |
 | `k8s/deployment.yaml` | 单副本，`Recreate` 更新，TCP 就绪与存活检查 |
 | `k8s/service.yaml` | ClusterIP，端口 3080 |
 | `k8s/ingress.yaml` | Traefik ingress |
 | `k8s/middleware-forwardauth.yaml` | forwardAuth 中间件，等 oauth2-proxy 就绪后再应用 |
-| `k8s/kustomization.yaml` | 上面五类对象，不含中间件 |
+| `k8s/kustomization.yaml` | 上面五个对象，不含中间件 |
 
-应用之前要填的占位：镜像地址、两处主机名、两个 PVC 的 `storageClassName`。`fsGroup: 1000` 假设存储插件支持变更属主；不支持的存储上 home 卷对容器用户不可写，需要 init 容器或直接以 root 运行。
+应用之前要填的占位：镜像地址、两处主机名、三个 PVC 的 `storageClassName`。`fsGroup: 1000` 假设存储插件支持变更属主；不支持的存储上 home 卷对容器用户不可写，需要 init 容器或直接以 root 运行。
 
 更新策略用 `Recreate`，因为同一个 home 目录只能由一个进程写入。
 
